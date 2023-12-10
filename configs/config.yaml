@@ -1,0 +1,13 @@
+defaults:
+  - _self_
+  - user_settings: user_settings
+
+project_path: ${user_settings.project_path}
+datasets_root: ${user_settings.datasets_root}
+results_dir: ${user_settings.hydra_dir}
+hydra_root: ${user_settings.hydra_root}
+hydra_dir: ${user_settings.hydra_dir}
+hydra:
+  run:
+    dir: ${hydra_dir}
+
