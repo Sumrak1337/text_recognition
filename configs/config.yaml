@@ -3,7 +3,7 @@ defaults:
   - user_settings: user_settings
 
 project_path: ${user_settings.project_path}
-datasets_root: ${user_settings.datasets_root}
+datasets_root: ${user_settings.datasets_path}
 results_dir: ${user_settings.hydra_dir}
 hydra_root: ${user_settings.hydra_root}
 hydra_dir: ${user_settings.hydra_dir}
@@ -11,3 +11,17 @@ hydra:
   run:
     dir: ${hydra_dir}
 
+data_dir: ${datasets_root}/hand_forms
+
+params:
+  available_writers: 672
+  results_file: ${datasets_root}/results/results.txt
+  time_file: ${datasets_root}/results/time.txt'
+  feature_extraction_method: overlapping # lines overlapping
+  classifier: support_vector # neural_network support_vector
+  histogram_bins: 256
+  nn_learning_rate: 0.003
+  nn_weight_decay: 0.01
+  nn_dropout: 0.25
+  nn_epochs: 200
+  nn_batch_size: 16

@@ -1,5 +1,5 @@
-project_path:
-datasets_path:
+project_path: C:\path\to\project
+datasets_path: D:\path\to\data
 results_dir: ${user_settings.project_path}/results
 hydra_root: ${user_settings.results_dir}/hydra
 hydra_dir: ${user_settings.hydra_root}/${now:%Y-%m-%d}/${now:%H-%M-%S}
