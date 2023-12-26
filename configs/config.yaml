@@ -12,13 +12,40 @@ hydra:
     dir: ${hydra_dir}
 
 data_dir: ${datasets_root}/data
-iam: ${data_dir}/raw
-output: ${data_dir}/output
+location: ${data_dir}/iam
+words_path: &wp ${location}/words
+labels_file: &lf ${location}/words.txt
+output_path: &op ${data_dir}/output
+processed_words_path: &pwp ${output_path}/words
+err_words_path: &ewp ${output_path}/words_with_error
 
 models_output: ${project_path}/models
 
 save_image_dir: &sid ${user_settings.results_dir}/test_image
 image_name: &in test_image.png
+
+data_loader:
+  _target_: src.dataloader.dataloader.Loader
+  prohibited:
+   - ','
+   - '('
+   - ')'
+   - ';'
+   - ':'
+   - '/'
+   - '\\'
+   - '#'
+   - '"'
+   - '?'
+   - '!'
+   - '*'
+   - '_'
+   - '&'
+  words_path: *wp
+  labels_file: *lf
+  output_path: *op
+  processed_words_path: *pwp
+  err_words_path: *ewp
 
 painter:
   _target_: src.utils.painter.Painter
