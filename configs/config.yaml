@@ -11,7 +11,15 @@ hydra:
   run:
     dir: ${hydra_dir}
 
-data_dir: ${datasets_root}/hand_forms
+data_dir: ${datasets_root}/data
+iam: ${data_dir}/raw
+output: ${data_dir}/output
+
+models_output: ${project_path}/models
+
+train_steps: 1000000
+save_iter: 2000
+batch_size: 64
 
 params:
   available_writers: 672
