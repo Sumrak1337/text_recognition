@@ -17,6 +17,19 @@ output: ${data_dir}/output
 
 models_output: ${project_path}/models
 
+save_image_dir: &sid ${user_settings.results_dir}/test_image
+image_name: &in test_image.png
+
+painter:
+  _target_: src.utils.painter.Painter
+  save_root: *sid
+  image_name: *in
+  canvas_width: 1000
+  canvas_height: 600
+  default_size: 4
+  default_color: black
+
+# --------------------------
 train_steps: 1000000
 save_iter: 2000
 batch_size: 64
