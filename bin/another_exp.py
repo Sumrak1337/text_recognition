@@ -1,12 +1,14 @@
+import os
+import tkinter as tk
 import numpy as np
 import cv2
 import hydra
 from omegaconf import DictConfig
 from pathlib import Path
+from hydra.utils import instantiate
 
 from src.ocr.normalization import word_normalization, letter_normalization
 from src.ocr import page, words, characters
-from src.ocr.helpers import implt
 from src.ocr.tfhelpers import Model
 from src.ocr.datahelpers import idx2char
 
@@ -14,7 +16,7 @@ from src.utils.common import get_config_path
 
 
 def main(cfg: DictConfig):
-    img = get_image(cfg=cfg)
+    get_image(cfg=cfg)
     model_path = Path(cfg.models_output)
     model_loc_chars = model_path / 'char-clas' / 'en' / 'CharClassifier'
     model_loc_ctc = model_path / 'word-clas' / 'CTC' / 'Classifier1'
@@ -22,13 +24,14 @@ def main(cfg: DictConfig):
     character_model = Model(model_loc_chars)
     ctc_model = Model(model_loc_ctc, operation='word_prediction')
 
+    img = Path(cfg.save_image_dir) / cfg.image_name
     image = cv2.cvtColor(cv2.imread(str(img)), cv2.COLOR_BGR2RGB)
 
     # crop
     crop = page.detection(image)
     boxes = words.detection(crop)
     lines = words.sort_words(boxes)
-
+    # TODO: add comparing from dictionary
     # implt(crop)
     # for line in lines:
     #     print(" ".join([char_recognition(crop[y1:y2, x1:x2],
@@ -103,8 +106,14 @@ def ctc_recognition(img, ctc_model):
 
 
 def get_image(cfg):
-    root = Path(f'{cfg.data_dir}') / 'test' / 'test1.png'
-    return root
+    os.makedirs(cfg.painter.save_root, exist_ok=True)
+    application = tk.Tk()
+    application.title("Painter")
+    # save_root = Path(f'{cfg.save_image_dir}')
+    # os.makedirs(save_root, exist_ok=True)
+    instantiate(cfg.painter, application=application)
+    # Painter(application=application, save_root=save_root, image_name=cfg.image_name)
+    application.mainloop()
 
 
 if __name__ == '__main__':
