@@ -6,4 +6,4 @@ def get_project_path():
 
 
 def get_config_path():
-    return get_project_path() / 'configs'
+    return get_project_path() / "configs"

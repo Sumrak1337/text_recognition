@@ -17,30 +17,7 @@ from src.utils.common import get_config_path
 
 def main(cfg: DictConfig):
     get_image(cfg=cfg)
-
-    model_path = Path(cfg.models_output)
-    model_loc_ctc = model_path / cfg.model_params.model_name
-
-    ctc_model = Model(model_loc_ctc, operation="word_prediction")
-
-    img = Path(cfg.save_image_dir) / cfg.image_name
-    image = cv2.cvtColor(cv2.imread(str(img)), cv2.COLOR_BGR2RGB)
-
-    # crop
-    crop = page.detection(image)
-    boxes = words.detection(crop)
-    lines = words.sort_words(boxes)
-
-    s = ""
-    for line in lines:
-        s = " ".join(
-            [
-                ctc_recognition(crop[y1:y2, x1:x2], ctc_model=ctc_model)
-                for (x1, y1, x2, y2) in line
-            ]
-        )
-    with open(Path(cfg.save_image_dir) / "prediction_text.txt", "w") as file:
-        file.write(s)
+    make_prediction(cfg=cfg)
 
 
 def ctc_recognition(img, ctc_model):
@@ -67,6 +44,32 @@ def get_image(cfg):
     application.title("Painter")
     instantiate(cfg.painter, application=application)
     application.mainloop()
+
+
+def make_prediction(cfg):
+    model_path = Path(cfg.models_output)
+    model_loc_ctc = model_path / cfg.model_params.model_name
+
+    ctc_model = Model(model_loc_ctc, operation="word_prediction")
+
+    img = Path(cfg.save_image_dir) / cfg.image_name
+    image = cv2.cvtColor(cv2.imread(str(img)), cv2.COLOR_BGR2RGB)
+
+    # crop
+    crop = page.detection(image)
+    boxes = words.detection(crop)
+    lines = words.sort_words(boxes)
+
+    s = ""
+    for line in lines:
+        s = " ".join(
+            [
+                ctc_recognition(crop[y1:y2, x1:x2], ctc_model=ctc_model)
+                for (x1, y1, x2, y2) in line
+            ]
+        )
+    with open(Path(cfg.save_image_dir) / "prediction_text.txt", "w") as file:
+        file.write(s)
 
 
 if __name__ == "__main__":

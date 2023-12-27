@@ -1,5 +1,5 @@
-import numpy as np
 import cv2
+import numpy as np
 
 from src.ocr.helpers import resize
 
@@ -25,10 +25,12 @@ class HysterThresh:
         h, w = self.img.shape
         for ri in range(r - 1, r + 2):
             for ci in range(c - 1, c + 2):
-                if (h > ri >= 0
-                        and w > ci >= 0
-                        and self.im[ri, ci] == 0
-                        and self.high > self.img[ri, ci] >= self.low):
+                if (
+                    h > ri >= 0
+                    and w > ci >= 0
+                    and self.im[ri, ci] == 0
+                    and self.high > self.img[ri, ci] >= self.low
+                ):
                     self.im[ri, ci] = self.img[ri, ci] + self.diff
                     self._hyster_rec(ri, ci)
 
@@ -42,8 +44,10 @@ class HysterThresh:
                     self._hyster_rec(ri, ci)
 
 
-def word_normalization(image, height, border=True, tilt=True, border_size=15, hyst_norm=False):
-    """ Preprocess a word - resize, binarize, tilt world."""
+def word_normalization(
+    image, height, border=True, tilt=True, border_size=15, hyst_norm=False
+):
+    """Preprocess a word - resize, binarize, tilt world."""
     image = resize(image, height, True)
 
     if hyst_norm:
@@ -77,7 +81,9 @@ def _word_tilt(img, height, border=True, border_size=15):
         # Set min number of valid lines (try higher)
         num_lines = np.sum(1 for l in lines if l[0][1] < 0.7 or l[0][1] > 2.6)
         if num_lines > 1:
-            mean_angle = np.mean([l[0][1] for l in lines if l[0][1] < 0.7 or l[0][1] > 2.6])
+            mean_angle = np.mean(
+                [l[0][1] for l in lines if l[0][1] < 0.7 or l[0][1] > 2.6]
+            )
 
         # Look for angle with correct value
         if mean_angle != 0 and (mean_angle < 0.7 or mean_angle > 2.6):
@@ -94,15 +100,13 @@ def _tilt_by_angle(img, angle, height):
     # Dist is positive for angle < 0.7; negative for angle > 2.6
     # Image must be shifed to right
     if dist > 0:
-        t_points = np.float32([[0, 0],
-                              [dist, height],
-                              [width + dist, height],
-                              [width, 0]])
+        t_points = np.float32(
+            [[0, 0], [dist, height], [width + dist, height], [width, 0]]
+        )
     else:
-        t_points = np.float32([[-dist, 0],
-                              [0, height],
-                              [width, height],
-                              [width - dist, 0]])
+        t_points = np.float32(
+            [[-dist, 0], [0, height], [width, height], [width - dist, 0]]
+        )
 
     M = cv2.getPerspectiveTransform(s_points, t_points)
     return cv2.warpPerspective(img, M, (int(width + abs(dist)), height))
@@ -142,42 +146,7 @@ def _crop_add_border(img, height, threshold=50, border=True, border_size=15):
         img = img[y0:y1, x0:x1]
 
     if border:
-        return cv2.copyMakeBorder(img, 0, 0, border_size, border_size,
-                                  cv2.BORDER_CONSTANT,
-                                  value=[0, 0, 0])
+        return cv2.copyMakeBorder(
+            img, 0, 0, border_size, border_size, cv2.BORDER_CONSTANT, value=[0, 0, 0]
+        )
     return img
-
-
-def letter_normalization(image, is_thresh=True, dim=False):
-    """Preprocess a letter - crop, resize"""
-    if is_thresh and image.shape[0] > 0 and image.shape[1] > 0:
-        image = _crop_add_border(image, height=0, threshold=80, border=False)
-
-    resized = image
-    if image.shape[0] > 1 and image.shape[1] > 1:
-        resized = _resize_letter(image)
-
-    result = np.zeros((64, 64), np.uint8)
-    offset = [0, 0]
-    # Calculate offset for smaller size
-    if image.shape[0] > image.shape[1]:
-        offset = [int((result.shape[1] - resized.shape[1])/2), 4]
-    else:
-        offset = [4, int((result.shape[0] - resized.shape[0])/2)]
-    # Replace zeros by image
-    result[offset[1]:offset[1] + resized.shape[0],
-           offset[0]:offset[0] + resized.shape[1]] = resized
-
-    if dim:
-        return result, image.shape
-    return result
-
-
-def _resize_letter(img, size=56):
-    """Resize bigger side of the image to given size."""
-    if img.shape[0] > img.shape[1]:
-        rat = size / img.shape[0]
-        return cv2.resize(img, (int(rat * img.shape[1]), size))
-    else:
-        rat = size / img.shape[1]
-        return cv2.resize(img, (size, int(rat * img.shape[0])))

@@ -1,6 +1,7 @@
-from pathlib import Path
 import tkinter as tk
+from pathlib import Path
 from tkinter import ttk
+
 from PIL import Image
 
 

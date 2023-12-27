@@ -19,6 +19,7 @@ output_path: &op ${data_dir}/output
 processed_words_path: &pwp ${output_path}/words
 err_words_path: &ewp ${output_path}/words_with_error
 
+csv_path: ${data_dir}/sets
 models_output: ${project_path}/models
 
 save_image_dir: &sid ${user_settings.results_dir}/test_image
@@ -47,6 +48,26 @@ data_loader:
   processed_words_path: *pwp
   err_words_path: *ewp
 
+test_set: 0.1
+validation_set: 0.1
+
+model_params:
+  layers: 2
+  residual_layers: 0
+  units: 512
+  num_buckets: 10
+  learning_rate: 1e-4
+  dropout: 0.4
+  train_steps: 20000
+  test_iter: 150
+  save_iter: 500
+  epoch: 500
+  batch_size: 64
+  model_name: WordPredictor
+  scale: 0.0003
+  hn_pool: 16  # 2^(number of pooling layers on height)
+  wn_pool: 8  # 2^(number of pooling layers on width)
+
 painter:
   _target_: src.utils.painter.Painter
   save_root: *sid
@@ -55,21 +76,3 @@ painter:
   canvas_height: 600
   default_size: 4
   default_color: black
-
-# --------------------------
-train_steps: 1000000
-save_iter: 2000
-batch_size: 64
-
-params:
-  available_writers: 672
-  results_file: ${datasets_root}/results/results.txt
-  time_file: ${datasets_root}/results/time.txt'
-  feature_extraction_method: overlapping # lines overlapping
-  classifier: support_vector # neural_network support_vector
-  histogram_bins: 256
-  nn_learning_rate: 0.003
-  nn_weight_decay: 0.01
-  nn_dropout: 0.25
-  nn_epochs: 200
-  nn_batch_size: 16

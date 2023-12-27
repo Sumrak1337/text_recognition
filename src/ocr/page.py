@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-from src.ocr.helpers import resize, ratio
+from src.ocr.helpers import ratio, resize
 
 
 def detection(image, area_thresh=0.5):
@@ -11,9 +11,7 @@ def detection(image, area_thresh=0.5):
     image_edges = _edges_detection(small, 200, 250)
 
     # Close gaps between edges (double page clouse => rectangle kernel)
-    closed_edges = cv2.morphologyEx(image_edges,
-                                    cv2.MORPH_CLOSE,
-                                    np.ones((5, 11)))
+    closed_edges = cv2.morphologyEx(image_edges, cv2.MORPH_CLOSE, np.ones((5, 11)))
     # Countours
     page_contour = _find_page_contours(closed_edges, small, area_thresh)
 
@@ -26,9 +24,9 @@ def detection(image, area_thresh=0.5):
 
 def _find_page_contours(edges, img, area_thresh):
     """Finding corner points of page contour."""
-    contours, hierarchy = cv2.findContours(edges,
-                                           cv2.RETR_TREE,
-                                           cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(
+        edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
+    )
 
     # Finding biggest rectangle otherwise return original corners
     height = edges.shape[0]
@@ -37,19 +35,20 @@ def _find_page_contours(edges, img, area_thresh):
     MAX_COUNTOUR_AREA = (width - 10) * (height - 10)
 
     max_area = MIN_COUNTOUR_AREA
-    page_contour = np.array([[0, 0],
-                             [0, height - 5],
-                             [width - 5, height - 5],
-                             [width - 5, 0]])
+    page_contour = np.array(
+        [[0, 0], [0, height - 5], [width - 5, height - 5], [width - 5, 0]]
+    )
 
     for cnt in contours:
         perimeter = cv2.arcLength(cnt, True)
         approx = cv2.approxPolyDP(cnt, 0.03 * perimeter, True)
 
         # Page has 4 corners and it is convex
-        if (len(approx) == 4 and
-                cv2.isContourConvex(approx) and
-                max_area < cv2.contourArea(approx) < MAX_COUNTOUR_AREA):
+        if (
+            len(approx) == 4
+            and cv2.isContourConvex(approx)
+            and max_area < cv2.contourArea(approx) < MAX_COUNTOUR_AREA
+        ):
             max_area = cv2.contourArea(approx)
             page_contour = approx[:, 0]
 
@@ -63,34 +62,33 @@ def _edges_detection(img, minVal, maxVal):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     img = cv2.bilateralFilter(img, 9, 75, 75)
-    img = cv2.adaptiveThreshold(img, 255,
-                                cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                cv2.THRESH_BINARY, 115, 4)
+    img = cv2.adaptiveThreshold(
+        img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 115, 4
+    )
 
     # Median blur replace center pixel by median of pixels under kelner
     # => removes thin details
     img = cv2.medianBlur(img, 11)
 
     # Add black border - detection of border touching pages
-    img = cv2.copyMakeBorder(img, 5, 5, 5, 5,
-                             cv2.BORDER_CONSTANT,
-                             value=[0, 0, 0])
+    img = cv2.copyMakeBorder(img, 5, 5, 5, 5, cv2.BORDER_CONSTANT, value=[0, 0, 0])
     return cv2.Canny(img, minVal, maxVal)
 
 
 def _persp_transform(img, s_points):
     """Transform perspective from start points to target points."""
     # Euclidean distance - calculate maximum height and width
-    height = max(np.linalg.norm(s_points[0] - s_points[1]),
-                 np.linalg.norm(s_points[2] - s_points[3]))
-    width = max(np.linalg.norm(s_points[1] - s_points[2]),
-                np.linalg.norm(s_points[3] - s_points[0]))
+    height = max(
+        np.linalg.norm(s_points[0] - s_points[1]),
+        np.linalg.norm(s_points[2] - s_points[3]),
+    )
+    width = max(
+        np.linalg.norm(s_points[1] - s_points[2]),
+        np.linalg.norm(s_points[3] - s_points[0]),
+    )
 
     # Create target points
-    t_points = np.array([[0, 0],
-                         [0, height],
-                         [width, height],
-                         [width, 0]], np.float32)
+    t_points = np.array([[0, 0], [0, height], [width, height], [width, 0]], np.float32)
 
     # getPerspectiveTransform() needs float32
     if s_points.dtype != np.float32:
@@ -104,10 +102,14 @@ def _four_corners_sort(pts):
     """Sort corners in order: top-left, bot-left, bot-right, top-right."""
     diff = np.diff(pts, axis=1)
     summ = pts.sum(axis=1)
-    return np.array([pts[np.argmin(summ)],
-                     pts[np.argmax(diff)],
-                     pts[np.argmax(summ)],
-                     pts[np.argmin(diff)]])
+    return np.array(
+        [
+            pts[np.argmin(summ)],
+            pts[np.argmax(diff)],
+            pts[np.argmax(summ)],
+            pts[np.argmin(diff)],
+        ]
+    )
 
 
 def _contour_offset(cnt, offset):
