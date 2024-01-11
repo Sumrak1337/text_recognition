@@ -1,13 +1,9 @@
 import csv
 import glob
 import os
-import sys
-
 import cv2
 import numpy as np
-import pandas as pd
 import simplejson
-import unidecode
 from tqdm import tqdm
 
 CHARS = [
